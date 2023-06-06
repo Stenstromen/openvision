@@ -18,7 +18,6 @@ export const submitFile = async (file: File) => {
         formData,
         config
       );
-      //console.log(response.data);
       return response.data;
     } catch (error) {
       console.error(error);
