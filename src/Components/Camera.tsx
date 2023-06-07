@@ -2,12 +2,17 @@
 /* eslint-disable @typescript-eslint/no-inferrable-types */
 import { useState, useRef, useCallback } from "react";
 import Webcam from "react-webcam";
+import Container from "react-bootstrap/Container";
+import Row from "react-bootstrap/Row";
+import Col from "react-bootstrap/Col";
 import { submitFile } from "../Api";
 import { IPredictions } from "../Types";
 
 function Camera({
+  setShowCamera,
   setPredictions,
 }: {
+  setShowCamera: (showCamera: boolean) => void;
   setPredictions: (predictions: IPredictions) => void;
 }) {
   const [b64image, setB64image] = useState<string>("");
@@ -37,7 +42,6 @@ function Camera({
 
   const capture = useCallback(async () => {
     const imageSrc = webcamRef.current?.getScreenshot();
-    console.log(imageSrc);
     if (imageSrc) {
       const base64Image = imageSrc.split(",")[1]; // Get the actual base64 string
       const blob = base64ToBlob(base64Image, "image/jpeg");
@@ -46,21 +50,41 @@ function Camera({
       return setPredictions(await submitFile(file));
     }
   }, [webcamRef]);
+  
   return (
     <div>
-      {b64image ? (
-        <img src={b64image} alt="webcam" />
-      ) : (
-        <Webcam
-          audio={false}
-          ref={webcamRef}
-          screenshotFormat="image/jpeg"
-          videoConstraints={{ facingMode: "environment" }}
-          width={300}
-        />
-      )}
-      <button onClick={capture}>Capture photo</button>
-      {b64image && <button onClick={() => setB64image("")}>Clear photo</button>}
+      <Container>
+        <Row className="align-items-center justify-content-center">
+          <Col
+            xs={10}
+            md={8}
+            className="d-flex flex-column justify-content-center mb-md-0"
+          >
+            {b64image ? (
+              <img src={b64image} alt="webcam" />
+            ) : (
+              <Webcam
+                audio={false}
+                ref={webcamRef}
+                screenshotFormat="image/jpeg"
+                videoConstraints={{ facingMode: "environment" }}
+                width={"100%"}
+              />
+            )}
+            <button onClick={capture}>Capture photo</button>
+            {b64image && (
+              <button
+                onClick={() => {
+                  setShowCamera(false);
+                  setPredictions({});
+                }}
+              >
+                Close
+              </button>
+            )}
+          </Col>
+        </Row>
+      </Container>
     </div>
   );
 }
