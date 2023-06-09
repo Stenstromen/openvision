@@ -1,4 +1,5 @@
 import { Container, Navbar, Collapse } from "react-bootstrap";
+import logo from "../logo.svg";
 
 function Header({ keras }: { keras: boolean }) {
   return (
@@ -8,7 +9,7 @@ function Header({ keras }: { keras: boolean }) {
           <Navbar.Brand>
             <img
               alt="logo"
-              src="/logo.svg"
+              src={logo}
               width="30"
               height="30"
               className="d-inline-block align-top"

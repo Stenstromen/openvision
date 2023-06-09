@@ -12,6 +12,7 @@ import {
 } from "react-bootstrap";
 import { AiOutlineCamera, AiOutlineFileJpg } from "react-icons/ai";
 import { IPredictions, TSorted } from "./Types";
+import logo from "./logo.svg";
 import Header from "./Components/Navbar";
 import File from "./Components/File";
 import Camera from "./Components/Camera";
@@ -48,8 +49,8 @@ function App() {
           <Container>
             <Row className="align-items-center justify-content-center">
               <Col md={4} className="d-flex justify-content-center">
-                <img src="/logo.svg" alt="logo" className="d-none d-md-block" />
-                <img src="/logo.svg" alt="logo" className="d-none d-md-block" />
+                <img src={logo} alt="logo" className="d-none d-md-block" />
+                <img src={logo} alt="logo" className="d-none d-md-block" />
               </Col>
             </Row>
           </Container>
