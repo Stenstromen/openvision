@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-inferrable-types */
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { Container, Row, Col, Button } from "react-bootstrap";
 import Webcam from "react-webcam";
 import { submitFile } from "../Api";
@@ -15,6 +15,15 @@ function Camera({
 }) {
   const [b64image, setB64image] = useState<string>("");
   const webcamRef = useRef<Webcam>(null);
+  const captureRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (webcamRef) {
+      setTimeout(() => {
+        captureRef.current?.scrollIntoView({ behavior: "smooth" });
+      }, 300);
+    }
+  }, [webcamRef]);
 
   const base64ToBlob = (
     base64: string,
@@ -70,7 +79,7 @@ function Camera({
                 width={"100%"}
               />
             )}
-            <div className="d-grid gap-2 mt-2">
+            <div ref={captureRef} className="d-grid gap-2 mt-2">
               <Button variant="primary" onClick={capture} size="lg">
                 Capture
               </Button>

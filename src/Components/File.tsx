@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Container, Row, Col, Button, Form } from "react-bootstrap";
 import { IPredictions } from "../Types";
 import { submitFile } from "../Api";
@@ -11,6 +11,16 @@ function File({
   setPredictions: (predictions: IPredictions) => void;
 }) {
   const [file, setFile] = useState<File | null>(null);
+  const submitRef = useRef<HTMLButtonElement | null>(null);
+
+  useEffect(() => {
+    if (file) {
+      setTimeout(() => {
+        submitRef.current?.scrollIntoView({ behavior: "smooth" });
+      }, 300);
+    }
+  }, [file]);
+
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) return setFile(event.target.files[0]);
   };
@@ -42,6 +52,7 @@ function File({
             </Form.Group>
             {file && (
               <Button
+                ref={submitRef}
                 className="mt-2"
                 variant="primary"
                 onClick={handleFileSubmit}
