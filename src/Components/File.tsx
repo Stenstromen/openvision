@@ -1,7 +1,5 @@
 import { useState } from "react";
-import Container from "react-bootstrap/Container";
-import Row from "react-bootstrap/Row";
-import Col from "react-bootstrap/Col";
+import { Container, Row, Col, Button, Form } from "react-bootstrap";
 import { IPredictions } from "../Types";
 import { submitFile } from "../Api";
 
@@ -32,16 +30,35 @@ function File({
             {file && (
               <img src={URL.createObjectURL(file)} alt="file" width={"100%"} />
             )}
-            <input type="file" onChange={handleFileChange} />
-            {file && <button onClick={handleFileSubmit}>Submit</button>}
-            <button
+            <Form.Group controlId="formFileLg" className="mb-3">
+              <Form.Label>JPEG File</Form.Label>
+              <Form.Control
+                type="file"
+                accept="image/jpeg"
+                onChange={handleFileChange}
+                size="lg"
+                as={"input"}
+              />
+            </Form.Group>
+            {file && (
+              <Button
+                className="mt-2"
+                variant="primary"
+                onClick={handleFileSubmit}
+              >
+                Submit
+              </Button>
+            )}
+            <Button
+              className="mt-2 mb-2"
+              variant="secondary"
               onClick={() => {
                 setShowFile(false);
                 setPredictions({});
               }}
             >
               Close
-            </button>
+            </Button>
           </Col>
         </Row>
       </Container>

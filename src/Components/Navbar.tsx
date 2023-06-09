@@ -1,23 +1,35 @@
-import Container from "react-bootstrap/Container";
-import Navbar from "react-bootstrap/Navbar";
+import { Container, Navbar, Collapse } from "react-bootstrap";
 
-function Header() {
+function Header({ keras }: { keras: boolean }) {
   return (
     <>
       <Navbar bg="dark" variant="dark" className="mb-3">
         <Container>
-          <Navbar.Brand href="#home">
+          <Navbar.Brand>
             <img
-              alt=""
+              alt="logo"
               src="/logo.svg"
               width="30"
               height="30"
               className="d-inline-block align-top"
             />{" "}
-            React Bootstrap
+            OpenVision
           </Navbar.Brand>
         </Container>
       </Navbar>
+      <Container>
+        <h1 className="text-center">OpenVision</h1>
+        <p className="text-center">
+          OpenVision is a web application that allows you to detect objects in
+          images, using <strong>Keras MobileNetV3.</strong>
+          <br />{" "}
+          <Collapse in={!keras}>
+            <p className="mt-4">
+              You can either upload JPEG or use your camera to take a picture.
+            </p>
+          </Collapse>
+        </p>
+      </Container>
     </>
   );
 }

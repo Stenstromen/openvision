@@ -1,10 +1,8 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-inferrable-types */
 import { useState, useRef, useCallback } from "react";
+import { Container, Row, Col, Button } from "react-bootstrap";
 import Webcam from "react-webcam";
-import Container from "react-bootstrap/Container";
-import Row from "react-bootstrap/Row";
-import Col from "react-bootstrap/Col";
 import { submitFile } from "../Api";
 import { IPredictions } from "../Types";
 
@@ -50,7 +48,7 @@ function Camera({
       return setPredictions(await submitFile(file));
     }
   }, [webcamRef]);
-  
+
   return (
     <div>
       <Container>
@@ -64,6 +62,7 @@ function Camera({
               <img src={b64image} alt="webcam" />
             ) : (
               <Webcam
+                className="rounded gap-2"
                 audio={false}
                 ref={webcamRef}
                 screenshotFormat="image/jpeg"
@@ -71,16 +70,39 @@ function Camera({
                 width={"100%"}
               />
             )}
-            <button onClick={capture}>Capture photo</button>
+            <div className="d-grid gap-2 mt-2">
+              <Button variant="primary" onClick={capture} size="lg">
+                Capture
+              </Button>
+            </div>
             {b64image && (
-              <button
-                onClick={() => {
-                  setShowCamera(false);
-                  setPredictions({});
-                }}
-              >
-                Close
-              </button>
+              <>
+                <div className="d-grid gap-2 mt-2">
+                  <Button
+                    variant="secondary"
+                    size="lg"
+                    onClick={() => {
+                      setB64image("");
+                      setShowCamera(false);
+                      setPredictions({});
+                    }}
+                  >
+                    Close
+                  </Button>
+                </div>
+                <div className="d-grid gap-2 mt-2 mb-2">
+                  <Button
+                    variant="secondary"
+                    size="lg"
+                    onClick={() => {
+                      setB64image("");
+                      setPredictions({});
+                    }}
+                  >
+                    Retake
+                  </Button>
+                </div>
+              </>
             )}
           </Col>
         </Row>
