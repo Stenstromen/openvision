@@ -15,15 +15,28 @@ function Camera({
 }) {
   const [b64image, setB64image] = useState<string>("");
   const webcamRef = useRef<Webcam>(null);
+  const [isWebcamActive, setIsWebcamActive] = useState(false);
   const captureRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    if (webcamRef) {
+    const intervalId = setInterval(() => {
+      if (webcamRef.current && webcamRef.current.stream) {
+        setIsWebcamActive(true);
+      }
+    }, 100);
+
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (isWebcamActive) {
       setTimeout(() => {
         captureRef.current?.scrollIntoView({ behavior: "smooth" });
       }, 1000);
     }
-  }, [webcamRef]);
+  }, [isWebcamActive]);
 
   const base64ToBlob = (
     base64: string,
