@@ -21,7 +21,7 @@ function Camera({
     if (webcamRef) {
       setTimeout(() => {
         captureRef.current?.scrollIntoView({ behavior: "smooth" });
-      }, 300);
+      }, 1000);
     }
   }, [webcamRef]);
 
@@ -79,7 +79,7 @@ function Camera({
                 width={"100%"}
               />
             )}
-            <div ref={captureRef} className="d-grid gap-2 mt-2">
+            <div className="d-grid gap-2 mt-2">
               <Button variant="primary" onClick={capture} size="lg">
                 Capture
               </Button>
@@ -113,6 +113,7 @@ function Camera({
                 </div>
               </>
             )}
+            <div ref={captureRef} />
           </Col>
         </Row>
       </Container>
