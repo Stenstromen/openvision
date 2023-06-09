@@ -85,6 +85,7 @@ function App() {
                     <Button
                       variant="outline-info"
                       className="p-5"
+                      aria-label="camera"
                       onClick={() => setShowCamera(true)}
                     >
                       <AiOutlineCamera size={70} color="green" />
@@ -98,6 +99,7 @@ function App() {
                     <Button
                       variant="outline-info"
                       className="p-5"
+                      aria-label="file"
                       onClick={() => setShowFile(true)}
                     >
                       <AiOutlineFileJpg size={70} color="green" />
