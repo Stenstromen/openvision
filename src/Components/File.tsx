@@ -12,6 +12,7 @@ function File({
 }) {
   const [file, setFile] = useState<File | null>(null);
   const submitRef = useRef<HTMLButtonElement | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     if (file) {
@@ -28,6 +29,11 @@ function File({
   const handleFileSubmit = async () => {
     if (file) return setPredictions(await submitFile(file));
   };
+
+  const triggerFileInput = () => {
+    fileInputRef.current?.click();
+  };
+
   return (
     <div>
       <Container>
@@ -37,17 +43,39 @@ function File({
             md={6}
             className="d-flex flex-column justify-content-center"
           >
-            {file && (
-              <img src={URL.createObjectURL(file)} alt="file" width={"100%"} />
+            {file ? (
+              <img
+                src={URL.createObjectURL(file)}
+                alt="file"
+                width={"100%"}
+                onClick={triggerFileInput}
+                style={{ cursor: "pointer" }}
+              />
+            ) : (
+              <div
+                style={{
+                  height: "200px",
+                  width: "100%",
+                  border: "1px solid",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  cursor: "pointer",
+                }}
+                onClick={triggerFileInput}
+              >
+                Click here or drag and drop a JPEG File
+              </div>
             )}
             <Form.Group controlId="formFileLg" className="mb-3">
-              <Form.Label>JPEG File</Form.Label>
               <Form.Control
                 type="file"
                 accept="image/jpeg"
                 onChange={handleFileChange}
                 size="lg"
                 as={"input"}
+                ref={fileInputRef}
+                style={{ display: "none" }}
               />
             </Form.Group>
             {file && (
