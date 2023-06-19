@@ -1,7 +1,13 @@
 import { useState, useEffect, useRef } from "react";
 import { Container, Row, Col, Button, Form } from "react-bootstrap";
 import { IPredictions } from "../Types";
-import { submitFile, classifyImage, loadModel, loadImageNetLabels } from "../Api";
+import {
+  submitFile,
+  loadModel,
+  getClassLabels,
+  loadImageNetLabels,
+} from "../Api";
+import * as tf from "@tensorflow/tfjs";
 
 function File({
   setShowFile,
@@ -13,22 +19,16 @@ function File({
   const [file, setFile] = useState<File | null>(null);
   const submitRef = useRef<HTMLButtonElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const [modelLoaded, setModelLoaded] = useState(false);
-
-  const fileToHTMLImageElement = (file: File) => new Promise<HTMLImageElement>((resolve, reject) => {
-    const img = new Image();
-    img.onload = () => resolve(img);
-    img.onerror = reject;
-    img.src = URL.createObjectURL(file);
-  });
+  const [model, setModel] = useState<tf.GraphModel | null>(null);
+  const [classLabels, setClassLabels] = useState(null);
 
   useEffect(() => {
-    const initializeModel = async () => {
-      await loadModel();
-      await loadImageNetLabels();
-      setModelLoaded(true);
-    };
-    initializeModel();
+    loadModel().then((model) => {
+      setModel(model);
+    });
+    getClassLabels().then((classLabels) => {
+      setClassLabels(classLabels);
+    });
   }, []);
 
   useEffect(() => {
@@ -43,11 +43,53 @@ function File({
     if (event.target.files) return setFile(event.target.files[0]);
   };
 
+  const convertFileToImageElement = async (
+    file: File
+  ): Promise<HTMLImageElement> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const img = new Image();
+        img.onload = () => {
+          resolve(img);
+        };
+        img.onerror = reject;
+        img.src = event.target?.result as string;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
   const handleFileSubmit = async () => {
     if (file) {
-      const imageElement = await fileToHTMLImageElement(file);
-      classifyImage(imageElement);
-      setPredictions(await submitFile(file));
+      const imgElement = await convertFileToImageElement(file);
+      const topK = tf.tidy(() => {
+        const tensorImg = tf.browser
+          .fromPixels(imgElement)
+          .resizeNearestNeighbor([224, 224])
+          .toFloat()
+          .expandDims();
+        const result = model?.predict(tensorImg);
+
+        if (result instanceof tf.Tensor) {
+          // Get top 5 results
+          const topKResults = result.as1D().topk(5);
+          const topKIndices = topKResults.indices.dataSync();
+          const topKValues = topKResults.values.dataSync();
+
+          return { topKIndices, topKValues };
+        }
+      });
+
+      const topPredictions: Record<string, number> = {};
+
+      if (classLabels && topK?.topKIndices && topK?.topKValues) {
+        for (let i = 0; i < topK.topKIndices.length; i++) {
+          topPredictions[classLabels[topK.topKIndices[i]]] = topK.topKValues[i];
+        }
+      }
+      setPredictions(topPredictions);
     }
   };
 
