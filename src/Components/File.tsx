@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Container, Row, Col, Button, Form } from "react-bootstrap";
 import { IPredictions } from "../Types";
-import { submitFile } from "../Api";
+import { submitFile, classifyImage, loadModel, loadImageNetLabels } from "../Api";
 
 function File({
   setShowFile,
@@ -13,6 +13,23 @@ function File({
   const [file, setFile] = useState<File | null>(null);
   const submitRef = useRef<HTMLButtonElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [modelLoaded, setModelLoaded] = useState(false);
+
+  const fileToHTMLImageElement = (file: File) => new Promise<HTMLImageElement>((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+    img.src = URL.createObjectURL(file);
+  });
+
+  useEffect(() => {
+    const initializeModel = async () => {
+      await loadModel();
+      await loadImageNetLabels();
+      setModelLoaded(true);
+    };
+    initializeModel();
+  }, []);
 
   useEffect(() => {
     if (file) {
@@ -27,7 +44,11 @@ function File({
   };
 
   const handleFileSubmit = async () => {
-    if (file) return setPredictions(await submitFile(file));
+    if (file) {
+      const imageElement = await fileToHTMLImageElement(file);
+      classifyImage(imageElement);
+      setPredictions(await submitFile(file));
+    }
   };
 
   const triggerFileInput = () => {
