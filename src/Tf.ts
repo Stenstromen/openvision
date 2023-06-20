@@ -1,34 +1,33 @@
-import * as tf from '@tensorflow/tfjs';
-import axios from 'axios';
-tf.setBackend('cpu');
+import * as tf from "@tensorflow/tfjs";
+import localforage from "localforage";
 
-export const loadImageNetLabels = async (): Promise<string[] | null> => {
-  try {
-    const response = await axios.get('./imagenet_labels.txt');
-    const labels = response.data.split('\n');
-    return labels;
-  } catch (error) {
-    console.error('Unable to load labels:', error);
-    return null;
-  }
-};
+tf.setBackend("cpu");
 
 export const loadModel = async () => {
-  const model_url = "./MobileNetV3Large/model.json";
+  const modelKey = "indexeddb://MobileNetV3Large-model";
+  let model;
 
-  const model = await tf.loadGraphModel(model_url);
+  try {
+    model = await tf.loadGraphModel(modelKey);
+  } catch (err) {
+    const modelUrl = "./MobileNetV3Large/model.json";
+    model = await tf.loadGraphModel(modelUrl);
+    await model.save(modelKey);
+  }
 
   return model;
 };
 
 export const getClassLabels = async () => {
-  const res = await fetch(
-    "./imagenet-simple-labels.json"
-  );
+  const LABELS_KEY = "class_labels";
 
-  const data = await res.json();
+  let labels = await localforage.getItem<string[]>(LABELS_KEY);
 
-  return data;
+  if (!labels) {
+    const res = await fetch("./imagenet-simple-labels.json");
+    labels = await res.json();
+    await localforage.setItem(LABELS_KEY, labels);
+  }
+
+  return labels;
 };
-
-

@@ -15,7 +15,7 @@ function File({
   const submitRef = useRef<HTMLButtonElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [model, setModel] = useState<tf.GraphModel | null>(null);
-  const [classLabels, setClassLabels] = useState(null);
+  const [classLabels, setClassLabels] = useState<string[] | null>(null);
 
   useEffect(() => {
     loadModel().then((model) => {
