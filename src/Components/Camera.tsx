@@ -16,7 +16,7 @@ function Camera({
 }) {
   const [b64image, setB64image] = useState<string>("");
   const [model, setModel] = useState<tf.GraphModel | null>(null);
-  const [classLabels, setClassLabels] = useState(null);
+  const [classLabels, setClassLabels] = useState<string[] | null>(null);
   const webcamRef = useRef<Webcam>(null);
   const [isWebcamActive, setIsWebcamActive] = useState(false);
   const captureRef = useRef<HTMLDivElement | null>(null);
