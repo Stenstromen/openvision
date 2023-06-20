@@ -20,16 +20,16 @@ function Header({ keras }: { keras: boolean }) {
       </Navbar>
       <Container>
         <h1 className="text-center">OpenVision</h1>
-        <p className="text-center">
+        <p className="mb-4 text-center">
           OpenVision is a web application that allows you to detect objects in
           images, using <strong>Keras MobileNetV3.</strong>
-          <br />{" "}
-          <Collapse in={!keras}>
-            <p className="mt-4">
-              You can either upload JPEG or use your camera to take a picture.
-            </p>
-          </Collapse>
         </p>
+        {/* <br />{" "} */}
+        <Collapse in={!keras}>
+          <p className="text-center">
+            You can either upload JPEG or use your camera to take a picture.
+          </p>
+        </Collapse>
       </Container>
     </>
   );

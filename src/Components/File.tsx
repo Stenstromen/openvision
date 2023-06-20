@@ -1,12 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Container, Row, Col, Button, Form } from "react-bootstrap";
 import { IPredictions } from "../Types";
-import {
-  submitFile,
-  loadModel,
-  getClassLabels,
-  loadImageNetLabels,
-} from "../Api";
+import { loadModel, getClassLabels } from "../Tf";
 import * as tf from "@tensorflow/tfjs";
 
 function File({

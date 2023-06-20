@@ -3,7 +3,7 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { Container, Row, Col, Button } from "react-bootstrap";
 import Webcam from "react-webcam";
-import { submitFile, loadModel, getClassLabels } from "../Api";
+import { loadModel, getClassLabels } from "../Tf";
 import { IPredictions } from "../Types";
 import * as tf from "@tensorflow/tfjs";
 
@@ -91,41 +91,33 @@ function Camera({
   };
 
   const handleFileSubmit = async (file: File) => {
-    console.log(classLabels)
-    
-      const imgElement = await convertFileToImageElement(file);
-      console.log(imgElement);
-      const topK = tf.tidy(() => {
-        console.log("asd")
-        const tensorImg = tf.browser
-          .fromPixels(imgElement)
-          .resizeNearestNeighbor([224, 224])
-          .toFloat()
-          .expandDims();
-        const result = model?.predict(tensorImg);
-        console.log(result);
-
-        if (result instanceof tf.Tensor) {
-          // Get top 5 results
-          const topKResults = result.as1D().topk(5);
-          const topKIndices = topKResults.indices.dataSync();
-          const topKValues = topKResults.values.dataSync();
-
-          return { topKIndices, topKValues };
-        }
-      });
-
-      const topPredictions: Record<string, number> = {};
+    const imgElement = await convertFileToImageElement(file);
+    const topK = tf.tidy(() => {
+      const tensorImg = tf.browser
+        .fromPixels(imgElement)
+        .resizeNearestNeighbor([224, 224])
+        .toFloat()
+        .expandDims();
+      const result = model?.predict(tensorImg);
       
-      console.log(classLabels)
-      if (classLabels && topK?.topKIndices && topK?.topKValues) {
-        for (let i = 0; i < topK.topKIndices.length; i++) {
-          topPredictions[classLabels[topK.topKIndices[i]]] = topK.topKValues[i];
-        }
+      if (result instanceof tf.Tensor) {
+        // Get top 5 results
+        const topKResults = result.as1D().topk(5);
+        const topKIndices = topKResults.indices.dataSync();
+        const topKValues = topKResults.values.dataSync();
+
+        return { topKIndices, topKValues };
       }
-      console.log(topPredictions);
-      return topPredictions;
-    
+    });
+
+    const topPredictions: Record<string, number> = {};
+
+    if (classLabels && topK?.topKIndices && topK?.topKValues) {
+      for (let i = 0; i < topK.topKIndices.length; i++) {
+        topPredictions[classLabels[topK.topKIndices[i]]] = topK.topKValues[i];
+      }
+    }
+    return topPredictions;
   };
 
   const capture = useCallback(async () => {
@@ -134,10 +126,10 @@ function Camera({
       const base64Image = imageSrc.split(",")[1]; // Get the actual base64 string
       const blob = base64ToBlob(base64Image, "image/jpeg");
       const file = new File([blob], "filename.jpg", { type: "image/jpeg" });
+      setPredictions(await handleFileSubmit(file));
       setB64image(imageSrc);
-      setPredictions(await handleFileSubmit(file))
     }
-  }, [webcamRef]);
+  }, [webcamRef, handleFileSubmit, setPredictions]);
 
   return (
     <div>
