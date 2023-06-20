@@ -3,8 +3,9 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { Container, Row, Col, Button } from "react-bootstrap";
 import Webcam from "react-webcam";
-import { submitFile } from "../Api";
+import { loadModel, getClassLabels } from "../Tf";
 import { IPredictions } from "../Types";
+import * as tf from "@tensorflow/tfjs";
 
 function Camera({
   setShowCamera,
@@ -14,9 +15,20 @@ function Camera({
   setPredictions: (predictions: IPredictions) => void;
 }) {
   const [b64image, setB64image] = useState<string>("");
+  const [model, setModel] = useState<tf.GraphModel | null>(null);
+  const [classLabels, setClassLabels] = useState(null);
   const webcamRef = useRef<Webcam>(null);
   const [isWebcamActive, setIsWebcamActive] = useState(false);
   const captureRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    loadModel().then((model) => {
+      setModel(model);
+    });
+    getClassLabels().then((classLabels) => {
+      setClassLabels(classLabels);
+    });
+  }, []);
 
   useEffect(() => {
     const intervalId = setInterval(() => {
@@ -60,16 +72,64 @@ function Camera({
     return blob;
   };
 
+  const convertFileToImageElement = async (
+    file: File
+  ): Promise<HTMLImageElement> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const img = new Image();
+        img.onload = () => {
+          resolve(img);
+        };
+        img.onerror = reject;
+        img.src = event.target?.result as string;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleFileSubmit = async (file: File) => {
+    const imgElement = await convertFileToImageElement(file);
+    const topK = tf.tidy(() => {
+      const tensorImg = tf.browser
+        .fromPixels(imgElement)
+        .resizeNearestNeighbor([224, 224])
+        .toFloat()
+        .expandDims();
+      const result = model?.predict(tensorImg);
+      
+      if (result instanceof tf.Tensor) {
+        // Get top 5 results
+        const topKResults = result.as1D().topk(5);
+        const topKIndices = topKResults.indices.dataSync();
+        const topKValues = topKResults.values.dataSync();
+
+        return { topKIndices, topKValues };
+      }
+    });
+
+    const topPredictions: Record<string, number> = {};
+
+    if (classLabels && topK?.topKIndices && topK?.topKValues) {
+      for (let i = 0; i < topK.topKIndices.length; i++) {
+        topPredictions[classLabels[topK.topKIndices[i]]] = topK.topKValues[i];
+      }
+    }
+    return topPredictions;
+  };
+
   const capture = useCallback(async () => {
     const imageSrc = webcamRef.current?.getScreenshot();
     if (imageSrc) {
       const base64Image = imageSrc.split(",")[1]; // Get the actual base64 string
       const blob = base64ToBlob(base64Image, "image/jpeg");
       const file = new File([blob], "filename.jpg", { type: "image/jpeg" });
+      setPredictions(await handleFileSubmit(file));
       setB64image(imageSrc);
-      return setPredictions(await submitFile(file));
     }
-  }, [webcamRef]);
+  }, [webcamRef, handleFileSubmit, setPredictions]);
 
   return (
     <div>

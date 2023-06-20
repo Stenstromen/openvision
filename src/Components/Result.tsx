@@ -1,3 +1,4 @@
+import { Fragment } from "react";
 import { Container, Row, Col, Collapse, Card } from "react-bootstrap";
 import { TSorted } from "../Types";
 
@@ -22,7 +23,7 @@ function Result({ sortedPredictions }: { sortedPredictions: TSorted }) {
                     &lt;High&gt;
                   </Card.Subtitle>
                   {sortedPredictions.map((prediction, index) => (
-                    <>
+                    <Fragment key={index}>
                       {index == 0 && (
                         <Card.Text>
                           <strong>
@@ -34,14 +35,14 @@ function Result({ sortedPredictions }: { sortedPredictions: TSorted }) {
                           </strong>
                         </Card.Text>
                       )}
-                    </>
+                    </Fragment>
                   ))}
                   <Card.Subtitle className="mb-1 text-warning">
                     &lt;Low&gt;
                   </Card.Subtitle>
                   <Card.Text>
                     {sortedPredictions.map((prediction, index) => (
-                      <>
+                      <Fragment key={index}>
                         {index >= 1 && index <= 4 && (
                           <>
                             <strong>
@@ -54,7 +55,7 @@ function Result({ sortedPredictions }: { sortedPredictions: TSorted }) {
                             <br />
                           </>
                         )}
-                      </>
+                      </Fragment>
                     ))}
                   </Card.Text>
                 </Card.Body>
