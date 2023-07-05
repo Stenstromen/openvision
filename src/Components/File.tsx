@@ -18,24 +18,42 @@ function File({
   const [classLabels, setClassLabels] = useState<string[] | null>(null);
 
   useEffect(() => {
-    loadModel().then((model) => {
-      setModel(model);
-    });
-    getClassLabels().then((classLabels) => {
-      setClassLabels(classLabels);
-    });
-  }, []);
+    async function initialize() {
+      try {
+        const model = await loadModel();
+        const classLabels = await getClassLabels();
+        setModel(model);
+        setClassLabels(classLabels);
+      } catch (error) {
+        console.error("Error initializing model or class labels:", error);
+      }
 
-  useEffect(() => {
-    if (file) {
-      setTimeout(() => {
-        submitRef.current?.scrollIntoView({ behavior: "smooth" });
-      }, 300);
+      if (file) {
+        setTimeout(() => {
+          submitRef.current?.scrollIntoView({ behavior: "smooth" });
+        }, 300);
+      }
     }
+
+    initialize();
   }, [file]);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) return setFile(event.target.files[0]);
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    const file = e.dataTransfer.files[0];
+    setFile(file);
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+  };
+
+  const triggerFileInput = () => {
+    fileInputRef.current?.click();
   };
 
   const convertFileToImageElement = async (
@@ -56,7 +74,7 @@ function File({
     });
   };
 
-  const handleFileSubmit = async () => {
+  const predictImageClasses = async () => {
     if (file) {
       const imgElement = await convertFileToImageElement(file);
       const topK = tf.tidy(() => {
@@ -88,10 +106,6 @@ function File({
     }
   };
 
-  const triggerFileInput = () => {
-    fileInputRef.current?.click();
-  };
-
   return (
     <div>
       <Container>
@@ -110,38 +124,38 @@ function File({
                 style={{ cursor: "pointer" }}
               />
             ) : (
-              <div
-                style={{
-                  height: "200px",
-                  width: "100%",
-                  border: "1px solid",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  cursor: "pointer",
-                }}
-                onClick={triggerFileInput}
-              >
-                Click here or drag and drop a JPEG File
-              </div>
+              <>
+                <div
+                  style={{
+                    height: 200,
+                    width: "100%",
+                    border: "1px solid",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    cursor: "pointer",
+                  }}
+                  onClick={triggerFileInput}
+                  onDrop={handleDrop}
+                  onDragOver={handleDragOver}
+                >
+                  Click here or drag and drop a JPEG File
+                </div>
+                <input
+                  type="file"
+                  accept="image/jpeg"
+                  onChange={handleFileChange}
+                  ref={fileInputRef}
+                  style={{ display: "none" }}
+                />
+              </>
             )}
-            <Form.Group controlId="formFileLg" className="mb-3">
-              <Form.Control
-                type="file"
-                accept="image/jpeg"
-                onChange={handleFileChange}
-                size="lg"
-                as={"input"}
-                ref={fileInputRef}
-                style={{ display: "none" }}
-              />
-            </Form.Group>
             {file && (
               <Button
                 ref={submitRef}
                 className="mt-2"
                 variant="primary"
-                onClick={handleFileSubmit}
+                onClick={predictImageClasses}
               >
                 Submit
               </Button>
